@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Шифр у пляшці — Симулятор Розслідування</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#ff6b00;--ink:#0f172a;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Nunito',sans-serif;
+  background:#0a1222;color:#fff;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px;
+}
+.app-container{
+  width:100%;max-width:900px;background:#0f172a;border-radius:24px;
+  box-shadow:0 12px 40px -10px rgba(0,0,0,.8);overflow:hidden;
+  border:2px solid rgba(255,255,255,0.1);
+}
+.sim{
+  background:#0a1222;border-radius:22px;overflow:hidden;position:relative;
+}
+.sim-stage{
+  position:relative;
+  height:520px;
+  background:#050810;overflow:hidden;
+}
+#simCanvas{
+  position:absolute;inset:0;
+  width:100%;height:100%;display:block;
+}
+.sim-readout{
+  position:absolute;top:20px;right:20px;
+  background:rgba(8,13,24,.88);
+  border:2px solid rgba(255,255,255,.25);
+  border-radius:16px;padding:10px 18px;
+  text-align:right;backdrop-filter:blur(10px);
+}
+.sim-readout .lbl{
+  display:block;font-size:.65rem;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;
+}
+.sim-readout .val{
+  display:block;font-size:1.3rem;font-weight:900;
+  letter-spacing:.02em;transition:color .25s;
+}
+.sim-readout.upright .val{color:#7ef0dc}
+.sim-readout.flipped .val{color:#ffb35c}
+
+.sim-controls{
+  padding:18px 20px 20px;
+  background:linear-gradient(to top,#0f172a 20%,#1e293b 100%);
+  display:flex;flex-direction:column;gap:14px;
+}
+.seg{
+  display:flex;gap:6px;padding:4px;border-radius:14px;
+  background:rgba(255,255,255,.07);
+}
+.seg-btn{
+  flex:1;padding:12px;border:0;border-radius:10px;
+  font-family:inherit;font-weight:800;font-size:.9rem;
+  color:#94a3b8;background:transparent;cursor:pointer;transition:.18s;
+}
+.seg-btn.on{
+  background:linear-gradient(145deg,#ffe066,#ffb020);
+  color:#3a1e00;box-shadow:0 3px 0 #b45309;
+}
+.slider-wrap{position:relative;padding:0 2px}
+.slider-top{
+  display:flex;justify-content:space-between;
+  font-size:.75rem;font-weight:800;color:#94a3b8;
+  margin-bottom:6px;
+}
+.slider-track{position:relative;padding-top:14px}
+#simSlider{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:32px;background:transparent;display:block;cursor:pointer;
+}
+#simSlider::-webkit-slider-runnable-track{
+  height:12px;border-radius:999px;
+  background:linear-gradient(90deg,#2b9fd4 0%,#4fd1c5 30%,#ffd93d 55%,#ff8a5c 75%,#ff6b6b 100%);
+}
+#simSlider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:32px;height:32px;border-radius:50%;margin-top:-10px;
+  background:radial-gradient(circle at 34% 30%,#fff,#ffe9a0);
+  border:3px solid #3a1e00;box-shadow:0 4px 14px rgba(0,0,0,.6);
+}
+.focus-mark{
+  position:absolute;top:0;transform:translateX(-50%);
+  font-size:.65rem;font-weight:900;letter-spacing:.05em;
+  color:#ffd93d;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.9);
+}
+.focus-mark::after{
+  content:'';display:block;width:2px;height:12px;margin:2px auto 0;
+  background:repeating-linear-gradient(to bottom,#ffd93d 0 3px,transparent 3px 6px);
+}
+.instruction-panel{
+  text-align:center;padding:12px;background:rgba(255,107,0,0.15);
+  border:2px dashed var(--orange);border-radius:14px;font-weight:800;font-size:1rem;color:#ffedd5;
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="sim">
+    <div class="instruction-panel">
+      🔍 ШИФР У ПЛЯШЦІ: Напишіть на папері слово <b>ТОНЕ</b> навпаки і дивіться через екран на перевертання!
+    </div>
+    <div class="sim-stage">
+      <canvas id="simCanvas"></canvas>
+      <div class="sim-readout upright" id="readout">
+        <span class="lbl">Ефект лінзи</span>
+        <span class="val" id="readoutVal">ПРАВОРУЧ</span>
+      </div>
+    </div>
+
+    <div class="sim-controls">
+      <div class="seg">
+        <button type="button" class="seg-btn" data-water="0">Порожня склянка</button>
+        <button type="button" class="seg-btn on" data-water="1">З водяною лінзою</button>
+      </div>
+
+      <div class="slider-wrap">
+        <div class="slider-top">
+          <span>◀ Близько</span>
+          <span>Далеко ▶</span>
+        </div>
+        <div class="slider-track">
+          <div class="focus-mark" id="focusMark" style="left:55%">🎯 ФОКУС</div>
+          <input type="range" id="simSlider" min="0" max="1" step="0.004" value="0.15">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const simCanvas = document.getElementById('simCanvas');
+const simCtx = simCanvas.getContext('2d', { alpha: false });
+const FOCUS_T = 0.55;
+let simW = 0, simH = 0, simDPR = 1;
+let simLastDir = 1;
+
+const simState = {
+  dist: 0.15,
+  water: true,
+  glass: { x: 0, y: 0, w: 0, h: 0 }
+};
+
+let sceneCanvas = null, sceneCtx = null;
+const simSlider = document.getElementById('simSlider');
+
+function resizeSim(){
+  const r = simCanvas.getBoundingClientRect();
+  if (r.width < 4) return;
+  simW = r.width;
+  simH = r.height;
+  simDPR = Math.min(window.devicePixelRatio || 1, 2);
+  simCanvas.width = Math.round(simW * simDPR);
+  simCanvas.height = Math.round(simH * simDPR);
+  simCtx.setTransform(simDPR, 0, 0, simDPR, 0, 0);
+
+  const gw = Math.min(simW * 0.45, simH * 0.6);
+  const gh = Math.min(simH * 0.85, gw * 2.2);
+  simState.glass = {
+    x: simW * 0.5 - gw / 2,
+    y: simH * 0.5 - gh / 2,
+    w: gw,
+    h: gh
+  };
+
+  if (!sceneCanvas){
+    sceneCanvas = document.createElement('canvas');
+    sceneCtx = sceneCanvas.getContext('2d');
+  }
+  sceneCanvas.width = Math.round(simW * simDPR);
+  sceneCanvas.height = Math.round(simH * simDPR);
+
+  simDraw();
+}
+
+function visualState(){
+  const t = simState.dist;
+  const f = FOCUS_T;
+  if (!simState.water){
+    return { mag: Math.max(0.35, 1 - 0.45 * t), dir: 1, blur: 0, focusProx: 0 };
+  }
+  const absD = Math.abs(t - f);
+  const focusProx = Math.max(0, 1 - absD / 0.16);
+  let mag, dir;
+  if (t < f){
+    const r = t / f;
+    mag = 1 + r * r * 1.6;
+    dir = 1;
+  } else {
+    const r = (t - f) / (1 - f);
+    mag = Math.max(0.35, 2.6 - r * 1.9);
+    dir = -1;
+  }
+  return { mag, dir, blur: focusProx * focusProx * 4, focusProx };
+}
+
+function buildScene(){
+  sceneCtx.setTransform(simDPR, 0, 0, simDPR, 0, 0);
+  sceneCtx.fillStyle = '#0f172a';
+  sceneCtx.fillRect(0, 0, simW, simH);
+
+  sceneCtx.save();
+  sceneCtx.font = '900 64px "Comfortaa", sans-serif';
+  sceneCtx.textAlign = 'center';
+  sceneCtx.textBaseline = 'middle';
+  sceneCtx.shadowColor = 'rgba(255, 217, 61, 0.6)';
+  sceneCtx.shadowBlur = 25;
+  sceneCtx.fillStyle = '#ffd93d';
+  
+  // Малюємо зашифроване слово навпаки для ефекту розслідування
+  sceneCtx.fillText('ЕН · ЕНОТ · ТОНЕ', simW * 0.5, simH * 0.5);
+  sceneCtx.restore();
+}
+
+function drawGlassShape(c, g){
+  const cx = g.x + g.w / 2;
+  const topY = g.y, botY = g.y + g.h;
+  const rx = g.w / 2;
+  const rimRy = g.w * 0.08;
+  c.beginPath();
+  c.moveTo(g.x, topY);
+  c.lineTo(g.x, botY);
+  c.ellipse(cx, botY, rx, rimRy, 0, Math.PI, 0, true);
+  c.lineTo(g.x + g.w, topY);
+  c.closePath();
+}
+
+function drawGlassBody(c, g){
+  const cx = g.x + g.w / 2;
+  const topY = g.y, botY = g.y + g.h;
+  const rx = g.w / 2;
+  const rimRy = g.w * 0.08;
+
+  c.save();
+  drawGlassShape(c, g);
+  c.clip();
+  if (simState.water){
+    const wTop = topY + g.h * 0.10;
+    c.beginPath();
+    c.ellipse(cx, wTop, rx - 3, rimRy - 1.5, 0, 0, Math.PI * 2);
+    const wg = c.createLinearGradient(0, wTop, 0, botY);
+    wg.addColorStop(0, 'rgba(200, 240, 255, 0.35)');
+    wg.addColorStop(1, 'rgba(80, 160, 230, 0.08)');
+    c.fillStyle = wg;
+    c.fill();
+  }
+  c.restore();
+
+  c.beginPath();
+  c.ellipse(cx, topY, rx, rimRy, 0, 0, Math.PI * 2);
+  c.strokeStyle = 'rgba(225, 245, 255, 0.90)';
+  c.lineWidth = 2.5;
+  c.stroke();
+
+  c.beginPath();
+  c.moveTo(g.x, topY);
+  c.lineTo(g.x, botY);
+  c.moveTo(g.x + g.w, topY);
+  c.lineTo(g.x + g.w, botY);
+  c.strokeStyle = 'rgba(230, 245, 255, 0.90)';
+  c.lineWidth = 2.5;
+  c.stroke();
+}
+
+function simDraw(){
+  if (!simW || !simH) return;
+  buildScene();
+  const g = simState.glass;
+  const cx = g.x + g.w / 2;
+  const vis = visualState();
+
+  simCtx.setTransform(simDPR, 0, 0, simDPR, 0, 0);
+  simCtx.drawImage(sceneCanvas, 0, 0, simW, simH);
+
+  simCtx.save();
+  drawGlassShape(simCtx, g);
+  simCtx.clip();
+
+  const sliceW = 3;
+  const halfG = g.w / 2;
+
+  for (let xOut = g.x; xOut < g.x + g.w; xOut += sliceW){
+    const uOut  = (xOut + sliceW / 2 - cx) / halfG;
+    const uWarp = uOut * (1 + 0.35 * uOut * uOut);
+    const uSrc  = vis.dir * uWarp / vis.mag;
+    const srcXLogical = cx + uSrc * halfG;
+    const srcLeftPhys = srcXLogical * simDPR - (sliceW * simDPR) / 2;
+    const srcWPhys    = sliceW * simDPR;
+
+    if (srcLeftPhys + srcWPhys < 0 || srcLeftPhys > sceneCanvas.width) continue;
+
+    simCtx.drawImage(
+      sceneCanvas,
+      srcLeftPhys, 0, srcWPhys, sceneCanvas.height,
+      xOut, g.y, sliceW + 0.7, g.h
+    );
+  }
+  simCtx.restore();
+  drawGlassBody(simCtx, g);
+}
+
+function simSync(){
+  const vis = visualState();
+  const card = document.getElementById('readout');
+  const val  = document.getElementById('readoutVal');
+
+  let txt, cls;
+  if (!simState.water){ txt = 'ПРЯМИЙ ТЕКСТ'; cls = ''; }
+  else if (vis.dir === 1){ txt = 'ЗВІЛЬНЕНИЙ (ПРАВОРУЧ)'; cls = 'upright'; }
+  else { txt = 'ПЕРЕВЕРНУТИЙ ШИФР (ЛІВОРУЧ)'; cls = 'flipped'; }
+
+  val.textContent = txt;
+  card.classList.remove('upright', 'flipped');
+  if (cls) card.classList.add(cls);
+}
+
+simSlider.addEventListener('input', () => {
+  simState.dist = parseFloat(simSlider.value);
+  simSync();
+  simDraw();
+});
+
+document.querySelectorAll('.seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    simState.water = btn.dataset.water === '1';
+    document.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b === btn));
+    simSync();
+    simDraw();
+  });
+});
+
+window.addEventListener('load', () => { resizeSim(); });
+window.addEventListener('resize', () => { resizeSim(); });
+</script>
+</body>
+</html>
