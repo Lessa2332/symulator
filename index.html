@@ -22,12 +22,14 @@ body{
 }
 #wordInput{
   flex:1;min-width:0;
-  padding:12px 16px;border-radius:14px;
+  padding:10px 16px;border-radius:14px;
   border:2px solid #334155;background:#1e293b;
   color:#fff;font-family:inherit;font-weight:900;
-  font-size:1.15rem;letter-spacing:.14em;text-align:center;
+  font-size:1rem;letter-spacing:.14em;text-align:center;
   outline:none;text-transform:uppercase;
   transition:border-color .2s, box-shadow .2s;
+  resize:none;line-height:1.15;
+  height:50px;overflow:hidden;
 }
 #wordInput:focus{border-color:#ff6b00;box-shadow:0 0 0 4px rgba(255,107,0,.15)}
 #wordInput::placeholder{color:#64748b;letter-spacing:.05em}
@@ -115,7 +117,8 @@ body{
 <body>
 <div class="app">
   <div class="topbar">
-    <input id="wordInput" maxlength="14" value="ТОНЕ" spellcheck="false" autocomplete="off" placeholder="Слово">
+    <textarea id="wordInput" rows="2" maxlength="40" spellcheck="false" autocomplete="off" placeholder="Слово">ТОНЕ
+НЕ ТОНЕ</textarea>
     <button class="icon-btn" id="btnFull" title="На весь екран">⛶</button>
   </div>
 
@@ -230,27 +233,46 @@ function visualState(){
   return { mag, dir, focusProx };
 }
 
-/* ===================== СЛОВО НА ЕКРАНІ ===================== */
+/* ===================== СЛОВО НА ЕКРАНІ (багаторядкове) ===================== */
 function drawWordScene(maxWOverride){
   sceneCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
   sceneCtx.fillStyle = '#ffffff';
   sceneCtx.fillRect(0, 0, W, H);
 
-  const word = (wordInput.value || 'НЕ ТОНЕ').toUpperCase();
+  const raw = (wordInput.value || 'ТОНЕ\nНЕ ТОНЕ').toUpperCase();
+  const lines = raw.split('\n').map(s => s.trim()).filter(s => s.length);
+  if (!lines.length) return;
 
   sceneCtx.fillStyle = '#111111';
   sceneCtx.textAlign = 'center';
   sceneCtx.textBaseline = 'middle';
 
   const maxW = maxWOverride || (W * 0.94);
-  let size = Math.min(H * 0.72, maxW * 0.85);
+  const lineH = 1.15; // відстань між рядками у частках від кегля
 
-  sceneCtx.font = `900 ${size}px Nunito, sans-serif`;
-  while (sceneCtx.measureText(word).width > maxW && size > 10){
+  // стартовий кегль: щоб блок рядків вліз і по висоті, і по ширині
+  let size = Math.min(
+    H * 0.9 / (1 + (lines.length - 1) * lineH),
+    maxW * 0.85
+  );
+
+  const setFont = s => { sceneCtx.font = `900 ${s}px Nunito, sans-serif`; };
+  setFont(size);
+
+  // зменшуємо, поки найширший рядок не влізе
+  while (size > 10 && lines.some(l => sceneCtx.measureText(l).width > maxW)){
     size -= 2;
-    sceneCtx.font = `900 ${size}px Nunito, sans-serif`;
+    setFont(size);
   }
-  sceneCtx.fillText(word, W/2, H/2);
+
+  // вертикальне центрування всього блоку
+  const gap    = size * lineH;
+  const totalH = size + (lines.length - 1) * gap;
+  const startY = H / 2 - totalH / 2 + size / 2;
+
+  lines.forEach((line, i) => {
+    sceneCtx.fillText(line, W / 2, startY + i * gap);
+  });
 }
 
 /* ===================== СЦЕНА ===================== */
