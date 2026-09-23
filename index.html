@@ -2,195 +2,221 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Шифр у пляшці — Симулятор Розслідування</title>
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@800;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Шифр у пляшці 🔍</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--orange:#ff6b00;--ink:#0f172a;}
-*{box-sizing:border-box;margin:0;padding:0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
 body{
-  font-family:'Nunito',sans-serif;
-  background:#0a1222;color:#fff;min-height:100vh;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:20px;
+  font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#0b1222;color:#e2e8f0;overflow:hidden;
 }
-.app-container{
-  width:100%;max-width:900px;background:#0f172a;border-radius:24px;
-  box-shadow:0 12px 40px -10px rgba(0,0,0,.8);overflow:hidden;
-  border:2px solid rgba(255,255,255,0.1);
-}
-.sim{
-  background:#0a1222;border-radius:22px;overflow:hidden;position:relative;
-}
-.sim-stage{
-  position:relative;
-  height:520px;
-  background:#050810;overflow:hidden;
-}
-#simCanvas{
-  position:absolute;inset:0;
-  width:100%;height:100%;display:block;
-}
-.sim-readout{
-  position:absolute;top:20px;right:20px;
-  background:rgba(8,13,24,.88);
-  border:2px solid rgba(255,255,255,.25);
-  border-radius:16px;padding:10px 18px;
-  text-align:right;backdrop-filter:blur(10px);
-}
-.sim-readout .lbl{
-  display:block;font-size:.65rem;font-weight:800;
-  letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;
-}
-.sim-readout .val{
-  display:block;font-size:1.3rem;font-weight:900;
-  letter-spacing:.02em;transition:color .25s;
-}
-.sim-readout.upright .val{color:#7ef0dc}
-.sim-readout.flipped .val{color:#ffb35c}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
 
-.sim-controls{
-  padding:18px 20px 20px;
-  background:linear-gradient(to top,#0f172a 20%,#1e293b 100%);
-  display:flex;flex-direction:column;gap:14px;
+.topbar{
+  display:flex;gap:10px;align-items:center;
+  padding:10px 12px;
+  padding-top:calc(10px + env(safe-area-inset-top));
+  background:#0b1222;flex-shrink:0;
 }
-.seg{
-  display:flex;gap:6px;padding:4px;border-radius:14px;
-  background:rgba(255,255,255,.07);
+#wordInput{
+  flex:1;min-width:0;
+  padding:12px 16px;border-radius:14px;
+  border:2px solid #334155;background:#1e293b;
+  color:#fff;font-family:inherit;font-weight:900;
+  font-size:1.15rem;letter-spacing:.14em;text-align:center;
+  outline:none;text-transform:uppercase;
+  transition:border-color .2s, box-shadow .2s;
 }
+#wordInput:focus{border-color:#ff6b00;box-shadow:0 0 0 4px rgba(255,107,0,.15)}
+#wordInput::placeholder{color:#64748b;letter-spacing:.05em}
+.icon-btn{
+  width:50px;height:50px;flex-shrink:0;
+  border-radius:14px;border:2px solid #334155;
+  background:#1e293b;color:#cbd5e1;
+  font-size:1.25rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.icon-btn:hover{background:#334155;color:#fff}
+.icon-btn:active{transform:scale(.95)}
+
+.stage{flex:1;position:relative;background:#000;overflow:hidden;min-height:0}
+#simCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+.readout{
+  position:absolute;top:14px;right:14px;
+  background:rgba(8,13,24,.85);
+  border:2px solid rgba(255,255,255,.2);
+  border-radius:14px;padding:6px 14px;
+  text-align:right;pointer-events:none;
+  backdrop-filter:blur(10px);transition:.3s;
+}
+.readout .lbl{display:block;font-size:.56rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8}
+.readout .val{display:block;font-size:1rem;font-weight:900;color:#7ef0dc;transition:color .25s}
+.readout.flipped{border-color:rgba(255,179,92,.7);box-shadow:0 0 0 3px rgba(255,179,92,.18)}
+.readout.flipped .val{color:#ffb35c}
+.readout.flash{animation:pulse .45s ease}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.1)}100%{transform:scale(1)}}
+
+.panel{
+  background:#0b1222;
+  padding:12px 14px;
+  padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;gap:10px;flex-shrink:0;
+}
+.seg{display:flex;gap:5px;padding:4px;border-radius:14px;background:rgba(255,255,255,.07)}
 .seg-btn{
-  flex:1;padding:12px;border:0;border-radius:10px;
-  font-family:inherit;font-weight:800;font-size:.9rem;
+  flex:1;padding:11px 6px;border:0;border-radius:10px;
+  font-family:inherit;font-weight:800;font-size:.82rem;
   color:#94a3b8;background:transparent;cursor:pointer;transition:.18s;
+  white-space:nowrap;
 }
-.seg-btn.on{
-  background:linear-gradient(145deg,#ffe066,#ffb020);
-  color:#3a1e00;box-shadow:0 3px 0 #b45309;
-}
-.slider-wrap{position:relative;padding:0 2px}
-.slider-top{
-  display:flex;justify-content:space-between;
-  font-size:.75rem;font-weight:800;color:#94a3b8;
-  margin-bottom:6px;
-}
-.slider-track{position:relative;padding-top:14px}
+.seg-btn.on{background:linear-gradient(145deg,#ffe066,#ffb020);color:#3a1e00;box-shadow:0 3px 0 #b45309}
+
+.slider-wrap{padding:0 4px}
+.slider-top{display:flex;justify-content:space-between;font-size:.66rem;font-weight:800;color:#94a3b8;margin-bottom:2px}
 #simSlider{
   -webkit-appearance:none;appearance:none;
-  width:100%;height:32px;background:transparent;display:block;cursor:pointer;
+  width:100%;height:34px;background:transparent;display:block;cursor:pointer;
 }
 #simSlider::-webkit-slider-runnable-track{
-  height:12px;border-radius:999px;
+  height:10px;border-radius:999px;
   background:linear-gradient(90deg,#2b9fd4 0%,#4fd1c5 30%,#ffd93d 55%,#ff8a5c 75%,#ff6b6b 100%);
 }
 #simSlider::-webkit-slider-thumb{
   -webkit-appearance:none;appearance:none;
-  width:32px;height:32px;border-radius:50%;margin-top:-10px;
+  width:28px;height:28px;border-radius:50%;margin-top:-9px;
   background:radial-gradient(circle at 34% 30%,#fff,#ffe9a0);
-  border:3px solid #3a1e00;box-shadow:0 4px 14px rgba(0,0,0,.6);
+  border:3px solid #3a1e00;
+  box-shadow:0 4px 14px rgba(0,0,0,.6);
 }
-.focus-mark{
-  position:absolute;top:0;transform:translateX(-50%);
-  font-size:.65rem;font-weight:900;letter-spacing:.05em;
-  color:#ffd93d;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.9);
+#simSlider::-moz-range-track{
+  height:10px;border-radius:999px;
+  background:linear-gradient(90deg,#2b9fd4,#4fd1c5 30%,#ffd93d 55%,#ff8a5c 75%,#ff6b6b);
 }
-.focus-mark::after{
-  content:'';display:block;width:2px;height:12px;margin:2px auto 0;
-  background:repeating-linear-gradient(to bottom,#ffd93d 0 3px,transparent 3px 6px);
+#simSlider::-moz-range-thumb{
+  width:24px;height:24px;border-radius:50%;
+  border:3px solid #3a1e00;
+  background:radial-gradient(circle at 34% 30%,#fff,#ffe9a0);
 }
-.instruction-panel{
-  text-align:center;padding:12px;background:rgba(255,107,0,0.15);
-  border:2px dashed var(--orange);border-radius:14px;font-weight:800;font-size:1rem;color:#ffedd5;
+
+.hint{
+  font-size:.78rem;color:#94a3b8;text-align:center;
+  font-weight:700;line-height:1.4;padding:0 6px;
 }
+.hide{display:none!important}
+
+.stage:fullscreen{width:100vw;height:100vh;background:#000}
+.stage:-webkit-full-screen{width:100vw;height:100vh;background:#000}
 </style>
 </head>
 <body>
+<div class="app">
+  <div class="topbar">
+    <input id="wordInput" maxlength="14" value="ТОНЕ" spellcheck="false" autocomplete="off" placeholder="Слово">
+    <button class="icon-btn" id="btnFull" title="На весь екран">⛶</button>
+  </div>
 
-<div class="app-container">
-  <div class="sim">
-    <div class="instruction-panel">
-      🔍 ШИФР У ПЛЯШЦІ: Напишіть на папері слово <b>ТОНЕ</b> навпаки і дивіться через екран на перевертання!
+  <div class="stage" id="stage">
+    <canvas id="simCanvas"></canvas>
+    <div class="readout hide" id="readout">
+      <span class="lbl">Крізь пляшку</span>
+      <span class="val" id="readoutVal">ПРЯМО</span>
     </div>
-    <div class="sim-stage">
-      <canvas id="simCanvas"></canvas>
-      <div class="sim-readout upright" id="readout">
-        <span class="lbl">Ефект лінзи</span>
-        <span class="val" id="readoutVal">ПРАВОРУЧ</span>
-      </div>
+  </div>
+
+  <div class="panel">
+    <div class="seg" id="modeSeg">
+      <button class="seg-btn on" data-mode="screen">📺 Екран</button>
+      <button class="seg-btn" data-mode="bottle">🫙 Пляшка</button>
+      <button class="seg-btn" data-mode="camera">📷 Камера</button>
     </div>
 
-    <div class="sim-controls">
-      <div class="seg">
-        <button type="button" class="seg-btn" data-water="0">Порожня склянка</button>
-        <button type="button" class="seg-btn on" data-water="1">З водяною лінзою</button>
-      </div>
-
-      <div class="slider-wrap">
-        <div class="slider-top">
-          <span>◀ Близько</span>
-          <span>Далеко ▶</span>
-        </div>
-        <div class="slider-track">
-          <div class="focus-mark" id="focusMark" style="left:55%">🎯 ФОКУС</div>
-          <input type="range" id="simSlider" min="0" max="1" step="0.004" value="0.15">
-        </div>
-      </div>
+    <div class="seg hide" id="waterSeg">
+      <button class="seg-btn" data-water="0" id="wBtn0">Порожня</button>
+      <button class="seg-btn on" data-water="1" id="wBtn1">З водою</button>
     </div>
+
+    <div class="slider-wrap hide" id="sliderWrap">
+      <div class="slider-top"><span>◀ Ближче до пляшки</span><span>Далі ▶</span></div>
+      <input type="range" id="simSlider" min="0" max="1" step="0.004" value="0.15">
+    </div>
+
+    <div class="hint" id="hint">👀 Постав справжню пляшку з водою перед екраном — і дивись крізь неї</div>
   </div>
 </div>
 
 <script>
-const simCanvas = document.getElementById('simCanvas');
-const simCtx = simCanvas.getContext('2d', { alpha: false });
+/* ===================== ЕЛЕМЕНТИ ===================== */
+const stage       = document.getElementById('stage');
+const canvas      = document.getElementById('simCanvas');
+const ctx         = canvas.getContext('2d', { alpha:false });
+const wordInput   = document.getElementById('wordInput');
+const readout     = document.getElementById('readout');
+const readoutVal  = document.getElementById('readoutVal');
+const sliderWrap  = document.getElementById('sliderWrap');
+const waterSeg    = document.getElementById('waterSeg');
+const simSlider   = document.getElementById('simSlider');
+const wBtn0       = document.getElementById('wBtn0');
+const wBtn1       = document.getElementById('wBtn1');
+const hintEl      = document.getElementById('hint');
+const btnFull     = document.getElementById('btnFull');
+const modeSeg     = document.getElementById('modeSeg');
+
+/* ===================== СТАН ===================== */
 const FOCUS_T = 0.55;
-let simW = 0, simH = 0, simDPR = 1;
-let simLastDir = 1;
+let mode  = 'screen';     // 'screen' | 'bottle' | 'camera'
+let dist  = 0.15;
+let water = true;
 
-const simState = {
-  dist: 0.15,
-  water: true,
-  glass: { x: 0, y: 0, w: 0, h: 0 }
-};
-
+let W = 0, H = 0, DPR = 1;
 let sceneCanvas = null, sceneCtx = null;
-const simSlider = document.getElementById('simSlider');
 
-function resizeSim(){
-  const r = simCanvas.getBoundingClientRect();
-  if (r.width < 4) return;
-  simW = r.width;
-  simH = r.height;
-  simDPR = Math.min(window.devicePixelRatio || 1, 2);
-  simCanvas.width = Math.round(simW * simDPR);
-  simCanvas.height = Math.round(simH * simDPR);
-  simCtx.setTransform(simDPR, 0, 0, simDPR, 0, 0);
+let rafId = 0;
+let lastDir = 1;
+let flashUntil = 0;
 
-  const gw = Math.min(simW * 0.45, simH * 0.6);
-  const gh = Math.min(simH * 0.85, gw * 2.2);
-  simState.glass = {
-    x: simW * 0.5 - gw / 2,
-    y: simH * 0.5 - gh / 2,
-    w: gw,
-    h: gh
-  };
+/* камера */
+let video = null, stream = null, camReady = false, camStarting = false;
+
+/* ===================== ГЕОМЕТРІЯ ПЛЯШКИ ===================== */
+function getGlass(){
+  const gw = Math.min(W * 0.60, H * 0.70);
+  const gh = Math.min(H * 0.84, gw * 1.8);
+  return { x: W/2 - gw/2, y: H/2 - gh/2, w: gw, h: gh };
+}
+
+/* ===================== РОЗМІР ===================== */
+function resize(){
+  const r = stage.getBoundingClientRect();
+  if (r.width < 4 || r.height < 4) return;
+  W = r.width; H = r.height;
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  canvas.width  = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 
   if (!sceneCanvas){
     sceneCanvas = document.createElement('canvas');
     sceneCtx = sceneCanvas.getContext('2d');
   }
-  sceneCanvas.width = Math.round(simW * simDPR);
-  sceneCanvas.height = Math.round(simH * simDPR);
+  sceneCanvas.width  = Math.round(W * DPR);
+  sceneCanvas.height = Math.round(H * DPR);
 
-  simDraw();
+  draw();
 }
 
+/* ===================== ФІЗИКА (спрощена лінза) ===================== */
 function visualState(){
-  const t = simState.dist;
-  const f = FOCUS_T;
-  if (!simState.water){
-    return { mag: Math.max(0.35, 1 - 0.45 * t), dir: 1, blur: 0, focusProx: 0 };
-  }
+  const t = dist, f = FOCUS_T;
+  if (!water) return { mag: 1, dir: 1, focusProx: 0 };
+
   const absD = Math.abs(t - f);
   const focusProx = Math.max(0, 1 - absD / 0.16);
+
   let mag, dir;
   if (t < f){
     const r = t / f;
@@ -201,31 +227,61 @@ function visualState(){
     mag = Math.max(0.35, 2.6 - r * 1.9);
     dir = -1;
   }
-  return { mag, dir, blur: focusProx * focusProx * 4, focusProx };
+  return { mag, dir, focusProx };
 }
 
-function buildScene(){
-  sceneCtx.setTransform(simDPR, 0, 0, simDPR, 0, 0);
-  sceneCtx.fillStyle = '#0f172a';
-  sceneCtx.fillRect(0, 0, simW, simH);
+/* ===================== СЛОВО НА ЕКРАНІ ===================== */
+function drawWordScene(maxWOverride){
+  sceneCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  sceneCtx.fillStyle = '#ffffff';
+  sceneCtx.fillRect(0, 0, W, H);
 
-  sceneCtx.save();
-  sceneCtx.font = '900 64px "Comfortaa", sans-serif';
+  const word = (wordInput.value || 'НЕ ТОНЕ').toUpperCase();
+
+  sceneCtx.fillStyle = '#111111';
   sceneCtx.textAlign = 'center';
   sceneCtx.textBaseline = 'middle';
-  sceneCtx.shadowColor = 'rgba(255, 217, 61, 0.6)';
-  sceneCtx.shadowBlur = 25;
-  sceneCtx.fillStyle = '#ffd93d';
-  
-  // Малюємо зашифроване слово навпаки для ефекту розслідування
-  sceneCtx.fillText('ЕН · ЕНОТ · ТОНЕ', simW * 0.5, simH * 0.5);
-  sceneCtx.restore();
+
+  const maxW = maxWOverride || (W * 0.94);
+  let size = Math.min(H * 0.72, maxW * 0.85);
+
+  sceneCtx.font = `900 ${size}px Nunito, sans-serif`;
+  while (sceneCtx.measureText(word).width > maxW && size > 10){
+    size -= 2;
+    sceneCtx.font = `900 ${size}px Nunito, sans-serif`;
+  }
+  sceneCtx.fillText(word, W/2, H/2);
 }
 
+/* ===================== СЦЕНА ===================== */
+function buildScene(){
+  sceneCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  sceneCtx.fillStyle = '#000';
+  sceneCtx.fillRect(0, 0, W, H);
+
+  /* камера */
+  if (mode === 'camera' && camReady && video && video.readyState >= 2 && video.videoWidth){
+    const iw = video.videoWidth, ih = video.videoHeight;
+    const s = Math.max(W / iw, H / ih);
+    const dw = iw * s, dh = ih * s;
+    sceneCtx.drawImage(video, (W - dw)/2, (H - dh)/2, dw, dh);
+    return;
+  }
+
+  /* слово — у режимі «пляшка» вписуємо в скло */
+  if (mode === 'bottle'){
+    const g = getGlass();
+    drawWordScene(g.w * 0.86);
+  } else {
+    drawWordScene();
+  }
+}
+
+/* ===================== СКЛО ===================== */
 function drawGlassShape(c, g){
-  const cx = g.x + g.w / 2;
+  const cx = g.x + g.w/2;
   const topY = g.y, botY = g.y + g.h;
-  const rx = g.w / 2;
+  const rx = g.w/2;
   const rimRy = g.w * 0.08;
   c.beginPath();
   c.moveTo(g.x, topY);
@@ -236,111 +292,336 @@ function drawGlassShape(c, g){
 }
 
 function drawGlassBody(c, g){
-  const cx = g.x + g.w / 2;
+  const cx = g.x + g.w/2;
   const topY = g.y, botY = g.y + g.h;
-  const rx = g.w / 2;
+  const rx = g.w/2;
   const rimRy = g.w * 0.08;
 
   c.save();
   drawGlassShape(c, g);
   c.clip();
-  if (simState.water){
+
+  /* легке затемнення країв */
+  const sh = c.createLinearGradient(g.x, 0, g.x + g.w, 0);
+  sh.addColorStop(0,   'rgba(0, 10, 25, 0.14)');
+  sh.addColorStop(0.5, 'rgba(255, 255, 255, 0.02)');
+  sh.addColorStop(1,   'rgba(0, 10, 25, 0.14)');
+  c.fillStyle = sh;
+  c.fillRect(g.x, topY, g.w, g.h);
+
+  if (water){
     const wTop = topY + g.h * 0.10;
     c.beginPath();
     c.ellipse(cx, wTop, rx - 3, rimRy - 1.5, 0, 0, Math.PI * 2);
     const wg = c.createLinearGradient(0, wTop, 0, botY);
-    wg.addColorStop(0, 'rgba(200, 240, 255, 0.35)');
-    wg.addColorStop(1, 'rgba(80, 160, 230, 0.08)');
+    wg.addColorStop(0, 'rgba(200, 240, 255, 0.18)');
+    wg.addColorStop(1, 'rgba(80, 160, 230, 0.05)');
     c.fillStyle = wg;
     c.fill();
+    c.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    c.lineWidth = 1.5;
+    c.stroke();
   }
+
+  /* бліки */
+  c.fillStyle = 'rgba(255, 255, 255, 0.18)';
+  c.fillRect(g.x + g.w * 0.12, topY, g.w * 0.06, g.h);
+  c.fillStyle = 'rgba(255, 255, 255, 0.10)';
+  c.fillRect(g.x + g.w * 0.78, topY, g.w * 0.045, g.h);
+
   c.restore();
 
+  /* обідок */
   c.beginPath();
   c.ellipse(cx, topY, rx, rimRy, 0, 0, Math.PI * 2);
-  c.strokeStyle = 'rgba(225, 245, 255, 0.90)';
+  c.strokeStyle = 'rgba(225, 245, 255, 0.9)';
   c.lineWidth = 2.5;
   c.stroke();
-
   c.beginPath();
-  c.moveTo(g.x, topY);
-  c.lineTo(g.x, botY);
-  c.moveTo(g.x + g.w, topY);
-  c.lineTo(g.x + g.w, botY);
-  c.strokeStyle = 'rgba(230, 245, 255, 0.90)';
+  c.ellipse(cx, topY, rx * 0.9, rimRy * 0.9, 0, 0, Math.PI * 2);
+  c.strokeStyle = 'rgba(180, 215, 245, 0.4)';
+  c.lineWidth = 1;
+  c.stroke();
+
+  /* стінки */
+  c.beginPath();
+  c.moveTo(g.x, topY);         c.lineTo(g.x, botY);
+  c.moveTo(g.x + g.w, topY);   c.lineTo(g.x + g.w, botY);
+  c.strokeStyle = 'rgba(230, 245, 255, 0.9)';
   c.lineWidth = 2.5;
+  c.stroke();
+
+  /* дно */
+  c.beginPath();
+  c.ellipse(cx, botY, rx, rimRy, 0, 0, Math.PI * 2);
+  c.strokeStyle = 'rgba(200, 225, 255, 0.55)';
+  c.lineWidth = 2;
   c.stroke();
 }
 
-function simDraw(){
-  if (!simW || !simH) return;
+/* ===================== МАЛЮВАННЯ ===================== */
+function draw(){
+  if (!W || !H) return;
   buildScene();
-  const g = simState.glass;
-  const cx = g.x + g.w / 2;
-  const vis = visualState();
 
-  simCtx.setTransform(simDPR, 0, 0, simDPR, 0, 0);
-  simCtx.drawImage(sceneCanvas, 0, 0, simW, simH);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.drawImage(sceneCanvas, 0, 0, W, H);
 
-  simCtx.save();
-  drawGlassShape(simCtx, g);
-  simCtx.clip();
+  const useLens = (mode === 'bottle' || mode === 'camera') && water;
 
-  const sliceW = 3;
-  const halfG = g.w / 2;
+  if (useLens){
+    const g = getGlass();
+    const cx = g.x + g.w/2;
+    const vis = visualState();
+    const now = performance.now();
+    const flash = flashUntil ? Math.max(0, 1 - (now - flashUntil) / 550) : 0;
 
-  for (let xOut = g.x; xOut < g.x + g.w; xOut += sliceW){
-    const uOut  = (xOut + sliceW / 2 - cx) / halfG;
-    const uWarp = uOut * (1 + 0.35 * uOut * uOut);
-    const uSrc  = vis.dir * uWarp / vis.mag;
-    const srcXLogical = cx + uSrc * halfG;
-    const srcLeftPhys = srcXLogical * simDPR - (sliceW * simDPR) / 2;
-    const srcWPhys    = sliceW * simDPR;
+    ctx.save();
+    drawGlassShape(ctx, g);
+    ctx.clip();
 
-    if (srcLeftPhys + srcWPhys < 0 || srcLeftPhys > sceneCanvas.width) continue;
+    const sliceW = 3;
+    const halfG = g.w/2;
 
-    simCtx.drawImage(
-      sceneCanvas,
-      srcLeftPhys, 0, srcWPhys, sceneCanvas.height,
-      xOut, g.y, sliceW + 0.7, g.h
-    );
+    for (let xOut = g.x; xOut < g.x + g.w; xOut += sliceW){
+      const uOut  = (xOut + sliceW/2 - cx) / halfG;
+      const uWarp = uOut * (1 + 0.35 * uOut * uOut);
+      const uSrc  = vis.dir * uWarp / vis.mag;
+      const srcXLogical = cx + uSrc * halfG;
+
+      const srcLeftPhys = srcXLogical * DPR - (sliceW * DPR) / 2;
+      const srcWPhys    = sliceW * DPR;
+
+      if (srcLeftPhys + srcWPhys < 0 || srcLeftPhys > sceneCanvas.width) continue;
+
+      ctx.drawImage(
+        sceneCanvas,
+        srcLeftPhys, 0, srcWPhys, sceneCanvas.height,
+        xOut, g.y, sliceW + 0.7, g.h
+      );
+    }
+
+    /* фокусне світіння */
+    if (vis.focusProx > 0.15){
+      const bandY = g.y + g.h/2;
+      const bandH = 6 + vis.focusProx * 30;
+      const glow = ctx.createLinearGradient(0, bandY - bandH, 0, bandY + bandH);
+      glow.addColorStop(0,   'rgba(255, 250, 200, 0)');
+      glow.addColorStop(0.5, 'rgba(255, 250, 200, ' + (vis.focusProx * 0.35).toFixed(3) + ')');
+      glow.addColorStop(1,   'rgba(255, 250, 200, 0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(g.x, bandY - bandH, g.w, bandH * 2);
+    }
+
+    /* спалах при перевороті */
+    if (flash > 0){
+      ctx.fillStyle = 'rgba(255, 255, 230, ' + (flash * 0.40).toFixed(3) + ')';
+      ctx.fillRect(g.x, g.y, g.w, g.h);
+    }
+
+    /* водяний відтінок */
+    if (water){
+      const wTop = g.y + g.h * 0.10;
+      const wg = ctx.createLinearGradient(0, wTop, 0, g.y + g.h);
+      wg.addColorStop(0, 'rgba(180, 230, 255, 0.06)');
+      wg.addColorStop(1, 'rgba(40, 110, 190, 0.10)');
+      ctx.fillStyle = wg;
+      ctx.fillRect(g.x, wTop, g.w, g.h - (wTop - g.y));
+    }
+
+    ctx.restore();
+    drawGlassBody(ctx, g);
   }
-  simCtx.restore();
-  drawGlassBody(simCtx, g);
+  else if (mode === 'bottle'){
+    /* порожня пляшка — тільки контур */
+    drawGlassBody(ctx, getGlass());
+  }
 }
 
-function simSync(){
+/* ===================== СИНХРОНІЗАЦІЯ ПІДПИСУ ===================== */
+function sync(){
+  if (mode === 'screen'){ readout.classList.add('hide'); return; }
+  readout.classList.remove('hide');
+
   const vis = visualState();
-  const card = document.getElementById('readout');
-  const val  = document.getElementById('readoutVal');
 
-  let txt, cls;
-  if (!simState.water){ txt = 'ПРЯМИЙ ТЕКСТ'; cls = ''; }
-  else if (vis.dir === 1){ txt = 'ЗВІЛЬНЕНИЙ (ПРАВОРУЧ)'; cls = 'upright'; }
-  else { txt = 'ПЕРЕВЕРНУТИЙ ШИФР (ЛІВОРУЧ)'; cls = 'flipped'; }
+  if (water && vis.dir !== lastDir){
+    lastDir = vis.dir;
+    flashUntil = performance.now();
+    readout.classList.remove('flash'); void readout.offsetWidth; readout.classList.add('flash');
+    if (navigator.vibrate) try{ navigator.vibrate([50, 40, 50]); }catch(e){}
+  }
 
-  val.textContent = txt;
-  card.classList.remove('upright', 'flipped');
-  if (cls) card.classList.add(cls);
+  let txt, flipped;
+  if (!water){ txt = 'БЕЗ ЕФЕКТУ'; flipped = false; }
+  else if (vis.dir === 1){ txt = 'ПРЯМО'; flipped = false; }
+  else { txt = 'ДЗЕРКАЛЬНО'; flipped = true; }
+
+  if (readoutVal.textContent !== txt){
+    readoutVal.textContent = txt;
+    readout.classList.toggle('flipped', flipped);
+  }
 }
 
+/* ===================== ЦИКЛ ===================== */
+function loop(){
+  rafId = requestAnimationFrame(loop);
+  sync();
+  draw();
+}
+function startLoop(){ if (!rafId) rafId = requestAnimationFrame(loop); }
+function stopLoop(){ if (rafId){ cancelAnimationFrame(rafId); rafId = 0; } }
+
+function updateLoop(){
+  if (mode === 'screen'){ stopLoop(); draw(); }
+  else { startLoop(); }
+}
+
+/* ===================== РЕЖИМИ ===================== */
+const HINTS = {
+  screen: '👀 Постав справжню пляшку з водою перед екраном — і дивись крізь неї',
+  bottle: '🎚️ Тягни повзунок — слово перевернеться у фокусі',
+  camera: '📷 Наведи камеру на аркуш зі словом (можна крізь пляшку)'
+};
+
+function setMode(m){
+  mode = m;
+
+  modeSeg.querySelectorAll('.seg-btn').forEach(b =>
+    b.classList.toggle('on', b.dataset.mode === m)
+  );
+
+  if (m === 'screen'){
+    sliderWrap.classList.add('hide');
+    waterSeg.classList.add('hide');
+    readout.classList.add('hide');
+    stopCamera();
+  } else if (m === 'bottle'){
+    sliderWrap.classList.remove('hide');
+    waterSeg.classList.remove('hide');
+    wBtn0.textContent = 'Порожня';
+    wBtn1.textContent = 'З водою';
+    readout.classList.remove('hide');
+    stopCamera();
+  } else if (m === 'camera'){
+    sliderWrap.classList.remove('hide');
+    waterSeg.classList.remove('hide');
+    wBtn0.textContent = 'Без ефекту';
+    wBtn1.textContent = 'Ефект пляшки';
+    readout.classList.remove('hide');
+    startCamera();
+  }
+
+  hintEl.textContent = HINTS[m];
+  lastDir = visualState().dir;
+  draw();
+  updateLoop();
+}
+
+modeSeg.addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn');
+  if (b) setMode(b.dataset.mode);
+});
+
+/* ===================== ВОДА ===================== */
+waterSeg.addEventListener('click', e => {
+  const b = e.target.closest('.seg-btn');
+  if (!b) return;
+  water = b.dataset.water === '1';
+  waterSeg.querySelectorAll('.seg-btn').forEach(x =>
+    x.classList.toggle('on', x === b)
+  );
+  lastDir = visualState().dir;
+  if (navigator.vibrate) try{ navigator.vibrate(12); }catch(e){}
+  draw();
+});
+
+/* ===================== ПОВЗУНОК ===================== */
 simSlider.addEventListener('input', () => {
-  simState.dist = parseFloat(simSlider.value);
-  simSync();
-  simDraw();
+  dist = parseFloat(simSlider.value);
+  draw();
 });
 
-document.querySelectorAll('.seg-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    simState.water = btn.dataset.water === '1';
-    document.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('on', b === btn));
-    simSync();
-    simDraw();
-  });
+/* ===================== СЛОВО ===================== */
+wordInput.addEventListener('input', () => draw());
+
+/* ===================== ПОВНИЙ ЕКРАН ===================== */
+btnFull.addEventListener('click', () => {
+  const el = stage;
+  const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (!isFs){
+    (el.requestFullscreen || el.webkitRequestFullscreen || el.webkitRequestFullScreen || function(){}).call(el);
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+  }
 });
 
-window.addEventListener('load', () => { resizeSim(); });
-window.addEventListener('resize', () => { resizeSim(); });
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev =>
+  document.addEventListener(ev, () => setTimeout(resize, 120))
+);
+
+/* ===================== КАМЕРА ===================== */
+async function startCamera(){
+  if (camStarting || camReady) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    alert('Камера недоступна — працюємо в демо-режимі.');
+    setMode('screen');
+    return;
+  }
+  camStarting = true;
+  try{
+    const s = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+    if (!video){
+      video = document.createElement('video');
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      video.muted = true;
+      video.autoplay = true;
+      video.playsInline = true;
+    }
+    video.srcObject = s;
+    await video.play();
+    stream = s;
+    camReady = true;
+    draw();
+  } catch(err){
+    camReady = false;
+    alert('Немає доступу до камери — працюємо в демо-режимі.');
+    setMode('screen');
+  } finally {
+    camStarting = false;
+  }
+}
+
+function stopCamera(){
+  if (stream) stream.getTracks().forEach(t => { try{ t.stop(); }catch(e){} });
+  stream = null;
+  camReady = false;
+}
+
+/* ===================== СТАРТ ===================== */
+window.addEventListener('load', () => {
+  resize();
+  setMode('screen');
+  if (document.fonts && document.fonts.ready){
+    document.fonts.ready.then(() => draw());
+  }
+});
+
+if (window.ResizeObserver){
+  new ResizeObserver(() => resize()).observe(stage);
+} else {
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', () => setTimeout(resize, 150));
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopLoop();
+  else updateLoop();
+});
 </script>
 </body>
 </html>
